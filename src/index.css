@@ -8,53 +8,53 @@
 
 @layer base {
   :root {
-    /* Backgrounds - Cream and White elegance */
-    --background: 45 55% 97%;
-    --foreground: 345 50% 12%;
+    /* Backgrounds - Luxurious ivory and champagne */
+    --background: 40 45% 96%;
+    --foreground: 345 60% 8%;
 
-    /* Cards - Elevated surfaces */
-    --card: 0 0% 100%;
-    --card-foreground: 345 50% 12%;
+    /* Cards - Elevated pearl surfaces */
+    --card: 40 40% 98%;
+    --card-foreground: 345 60% 8%;
 
     /* Popovers */
-    --popover: 0 0% 100%;
-    --popover-foreground: 345 50% 12%;
+    --popover: 40 40% 98%;
+    --popover-foreground: 345 60% 8%;
 
-    /* Primary - Rich Gold */
-    --primary: 45 88% 58%;
-    --primary-foreground: 345 50% 12%;
-    --primary-glow: 45 100% 70%;
+    /* Primary - Opulent Gold */
+    --primary: 43 95% 55%;
+    --primary-foreground: 345 60% 8%;
+    --primary-glow: 43 100% 65%;
 
-    /* Secondary - Deep Maroon */
-    --secondary: 345 75% 30%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Royal Burgundy */
+    --secondary: 345 85% 25%;
+    --secondary-foreground: 40 50% 98%;
 
-    /* Muted - Soft neutrals */
-    --muted: 45 30% 92%;
-    --muted-foreground: 345 20% 45%;
+    /* Muted - Sophisticated neutrals */
+    --muted: 40 25% 90%;
+    --muted-foreground: 345 30% 40%;
 
-    /* Accent - Gold accent */
-    --accent: 45 85% 65%;
-    --accent-foreground: 345 50% 12%;
+    /* Accent - Amber Gold */
+    --accent: 38 92% 58%;
+    --accent-foreground: 345 60% 8%;
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 40 50% 98%;
 
-    /* Borders and inputs - Subtle gold tint */
-    --border: 45 25% 88%;
-    --input: 45 25% 90%;
-    --ring: 45 88% 58%;
+    /* Borders and inputs - Golden champagne tint */
+    --border: 43 35% 85%;
+    --input: 43 30% 88%;
+    --ring: 43 95% 55%;
 
-    /* Gradients */
-    --gradient-gold: linear-gradient(135deg, hsl(45, 88%, 58%), hsl(35, 85%, 50%));
-    --gradient-maroon: linear-gradient(135deg, hsl(345, 75%, 30%), hsl(345, 65%, 25%));
-    --gradient-hero: linear-gradient(135deg, hsl(345, 75%, 30%) 0%, hsl(345, 65%, 35%) 50%, hsl(45, 88%, 58%) 100%);
+    /* Gradients - Luxurious depth */
+    --gradient-gold: linear-gradient(135deg, hsl(43, 95%, 55%) 0%, hsl(38, 92%, 50%) 50%, hsl(33, 88%, 48%) 100%);
+    --gradient-maroon: linear-gradient(135deg, hsl(345, 85%, 25%) 0%, hsl(345, 80%, 20%) 50%, hsl(345, 75%, 15%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(345, 85%, 25%) 0%, hsl(345, 75%, 30%) 30%, hsl(38, 92%, 58%) 70%, hsl(43, 95%, 55%) 100%);
 
-    /* Shadows - Elegant and soft */
-    --shadow-soft: 0 2px 12px -2px hsl(45 88% 58% / 0.15);
-    --shadow-gold: 0 4px 20px -4px hsl(45 88% 58% / 0.3);
-    --shadow-elevated: 0 8px 32px -8px hsl(345 50% 12% / 0.12);
+    /* Shadows - Premium depth and elegance */
+    --shadow-soft: 0 2px 16px -2px hsl(43 95% 55% / 0.2);
+    --shadow-gold: 0 6px 28px -4px hsl(43 95% 55% / 0.4);
+    --shadow-elevated: 0 12px 40px -8px hsl(345 60% 8% / 0.18);
 
     /* Border radius */
     --radius: 0.75rem;
@@ -77,34 +77,34 @@
   }
 
   .dark {
-    --background: 345 50% 8%;
-    --foreground: 45 55% 95%;
+    --background: 345 55% 6%;
+    --foreground: 40 50% 96%;
 
-    --card: 345 45% 12%;
-    --card-foreground: 45 55% 95%;
+    --card: 345 50% 10%;
+    --card-foreground: 40 50% 96%;
 
-    --popover: 345 45% 12%;
-    --popover-foreground: 45 55% 95%;
+    --popover: 345 50% 10%;
+    --popover-foreground: 40 50% 96%;
 
-    --primary: 45 88% 58%;
-    --primary-foreground: 345 50% 12%;
-    --primary-glow: 45 100% 70%;
+    --primary: 43 95% 55%;
+    --primary-foreground: 345 60% 8%;
+    --primary-glow: 43 100% 65%;
 
-    --secondary: 345 75% 35%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 345 85% 30%;
+    --secondary-foreground: 40 50% 98%;
 
-    --muted: 345 30% 20%;
-    --muted-foreground: 45 20% 65%;
+    --muted: 345 35% 18%;
+    --muted-foreground: 40 30% 65%;
 
-    --accent: 45 85% 65%;
-    --accent-foreground: 345 50% 12%;
+    --accent: 38 92% 58%;
+    --accent-foreground: 345 60% 8%;
 
     --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 40 50% 98%;
 
-    --border: 345 30% 22%;
-    --input: 345 30% 22%;
-    --ring: 45 88% 58%;
+    --border: 345 35% 20%;
+    --input: 345 35% 20%;
+    --ring: 43 95% 55%;
   }
 }
 
