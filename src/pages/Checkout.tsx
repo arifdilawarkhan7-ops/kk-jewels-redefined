@@ -20,6 +20,7 @@ const Checkout = () => {
     address: "",
     city: "",
     pincode: "",
+    paymentMethod: "card",
   });
 
   const formatPrice = (price: number) => {
@@ -87,6 +88,63 @@ const Checkout = () => {
               <h2 className="text-2xl font-semibold mb-6">Shipping Information</h2>
 
               <div className="space-y-6">
+                {/* Payment Method Selection */}
+                <div className="bg-muted/30 p-6 rounded-lg border border-border">
+                  <Label className="text-lg font-semibold mb-4 block">Payment Method *</Label>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "card" }))}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.paymentMethod === "card"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold">Credit/Debit Card</div>
+                      <div className="text-sm text-muted-foreground">Visa, Mastercard, Amex</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "paypal" }))}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.paymentMethod === "paypal"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold">PayPal</div>
+                      <div className="text-sm text-muted-foreground">Fast & secure</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "bank" }))}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.paymentMethod === "bank"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold">Bank Transfer</div>
+                      <div className="text-sm text-muted-foreground">Direct payment</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "payoneer" }))}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.paymentMethod === "payoneer"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold">Payoneer</div>
+                      <div className="text-sm text-muted-foreground">International payments</div>
+                    </button>
+                  </div>
+                </div>
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
