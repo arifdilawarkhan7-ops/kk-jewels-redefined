@@ -88,61 +88,176 @@ const Checkout = () => {
               <h2 className="text-2xl font-semibold mb-6">Shipping Information</h2>
 
               <div className="space-y-6">
-                {/* Payment Method Selection */}
+                {/* Payment Method Selection - Amazon Style */}
                 <div className="bg-muted/30 p-6 rounded-lg border border-border">
-                  <Label className="text-lg font-semibold mb-4 block">Payment Method *</Label>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <Label className="text-lg font-semibold mb-4 block">Choose Payment Method *</Label>
+                  <div className="space-y-3">
+                    {/* Credit/Debit Cards */}
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "card" }))}
-                      className={`p-4 rounded-lg border-2 transition-all ${
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                         formData.paymentMethod === "card"
                           ? "border-primary bg-primary/5 shadow-gold"
                           : "border-border hover:border-primary/50"
                       }`}
                     >
-                      <div className="font-semibold">Credit/Debit Card</div>
-                      <div className="text-sm text-muted-foreground">Visa, Mastercard, Amex</div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold flex items-center gap-2">
+                            Credit or Debit Card
+                            <span className="text-xs bg-accent/20 text-accent-foreground px-2 py-0.5 rounded">Recommended</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            Visa, Mastercard, Amex, Rupay, Diners Club
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <div className="w-8 h-6 bg-gradient-to-br from-blue-600 to-blue-800 rounded text-white text-[8px] flex items-center justify-center font-bold">VISA</div>
+                          <div className="w-8 h-6 bg-gradient-to-br from-red-600 to-orange-600 rounded flex items-center justify-center">
+                            <div className="flex gap-0.5">
+                              <div className="w-2 h-2 bg-white rounded-full opacity-90"></div>
+                              <div className="w-2 h-2 bg-white rounded-full opacity-90"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </button>
 
+                    {/* Net Banking */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "netbanking" }))}
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                        formData.paymentMethod === "netbanking"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold">Net Banking</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        All major banks - HDFC, ICICI, SBI, Axis & more
+                      </div>
+                    </button>
+
+                    {/* UPI */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "upi" }))}
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                        formData.paymentMethod === "upi"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold">UPI</div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            Google Pay, PhonePe, Paytm & more
+                          </div>
+                        </div>
+                        <div className="text-xs bg-primary/20 text-primary px-2 py-1 rounded font-semibold">
+                          INSTANT
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Wallets */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "wallet" }))}
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                        formData.paymentMethod === "wallet"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold">Wallets</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Amazon Pay, Paytm Wallet, PhonePe Wallet
+                      </div>
+                    </button>
+
+                    {/* EMI */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "emi" }))}
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                        formData.paymentMethod === "emi"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold flex items-center gap-2">
+                        EMI (Easy Installments)
+                        <span className="text-xs text-primary">Starting ₹2,000/month</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Credit Card EMI, Debit Card EMI & Cardless EMI
+                      </div>
+                    </button>
+
+                    {/* COD */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "cod" }))}
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                        formData.paymentMethod === "cod"
+                          ? "border-primary bg-primary/5 shadow-gold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold">Cash on Delivery (COD)</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Pay when you receive • Cash, UPI or Card accepted
+                      </div>
+                    </button>
+
+                    {/* PayPal */}
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "paypal" }))}
-                      className={`p-4 rounded-lg border-2 transition-all ${
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                         formData.paymentMethod === "paypal"
                           ? "border-primary bg-primary/5 shadow-gold"
                           : "border-border hover:border-primary/50"
                       }`}
                     >
-                      <div className="font-semibold">PayPal</div>
-                      <div className="text-sm text-muted-foreground">Fast & secure</div>
+                      <div className="font-semibold flex items-center gap-2">
+                        PayPal
+                        <span className="text-xs text-muted-foreground">International</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Fast & secure international payments
+                      </div>
                     </button>
 
+                    {/* Gift Card */}
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "bank" }))}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        formData.paymentMethod === "bank"
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "giftcard" }))}
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                        formData.paymentMethod === "giftcard"
                           ? "border-primary bg-primary/5 shadow-gold"
                           : "border-border hover:border-primary/50"
                       }`}
                     >
-                      <div className="font-semibold">Bank Transfer</div>
-                      <div className="text-sm text-muted-foreground">Direct payment</div>
+                      <div className="font-semibold">Gift Card or Promotional Code</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Redeem your gift card or enter promotional code
+                      </div>
                     </button>
+                  </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "payoneer" }))}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        formData.paymentMethod === "payoneer"
-                          ? "border-primary bg-primary/5 shadow-gold"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <div className="font-semibold">Payoneer</div>
-                      <div className="text-sm text-muted-foreground">International payments</div>
-                    </button>
+                  {/* Payment Security Notice */}
+                  <div className="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                    <p className="text-xs text-muted-foreground flex items-center gap-2">
+                      <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      Your payment information is secured with 256-bit SSL encryption
+                    </p>
                   </div>
                 </div>
                 <div>
