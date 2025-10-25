@@ -6,14 +6,52 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import { z } from "zod";
+
+const checkoutSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be less than 100 characters")
+    .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
+  email: z.string()
+    .trim()
+    .email("Invalid email address")
+    .max(255, "Email is too long")
+    .toLowerCase(),
+  phone: z.string()
+    .trim()
+    .regex(/^[\+]?[1-9]\d{9,14}$/, "Invalid phone number (e.g., +919876543210)"),
+  address: z.string()
+    .trim()
+    .min(10, "Address must be at least 10 characters")
+    .max(500, "Address is too long"),
+  city: z.string()
+    .trim()
+    .min(2, "City name is too short")
+    .max(100, "City name is too long"),
+  pincode: z.string()
+    .trim()
+    .regex(/^[0-9]{6}$/, "Pincode must be exactly 6 digits"),
+  paymentMethod: z.enum(["card", "netbanking", "upi", "wallet", "emi", "cod", "paypal", "giftcard"]),
+});
 
 const Checkout = () => {
   const { cart, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    pincode: string;
+    paymentMethod: "card" | "netbanking" | "upi" | "wallet" | "emi" | "cod" | "paypal" | "giftcard";
+  }>({
     name: "",
     email: "",
     phone: "",
@@ -32,43 +70,91 @@ const Checkout = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+
+    // Clear error for this field when user types
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const validateField = (field: string, value: any) => {
+    try {
+      checkoutSchema.shape[field as keyof typeof checkoutSchema.shape].parse(value);
+      setErrors(prev => ({ ...prev, [field]: "" }));
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setErrors(prev => ({ ...prev, [field]: error.errors[0].message }));
+        return false;
+      }
+      return false;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessing(true);
+    
+    // Validate all fields
+    try {
+      const validated = checkoutSchema.parse(formData);
+      setErrors({});
+      setIsProcessing(true);
 
-    // Simulate order processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Simulate order processing with payment verification
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Save order to localStorage (in real app, send to backend)
-    const order = {
-      id: Date.now().toString(),
-      customer: formData,
-      items: cart,
-      total: cartTotal,
-      date: new Date().toISOString(),
-    };
+      // Save order to localStorage (in real app, send to backend with payment gateway)
+      const order = {
+        id: `ORD-${Date.now()}`,
+        orderNumber: `KKJ${Date.now().toString().slice(-8)}`,
+        customer: validated,
+        items: cart,
+        subtotal: cartTotal,
+        shipping: 0,
+        total: cartTotal,
+        status: "pending",
+        paymentStatus: validated.paymentMethod === "cod" ? "pending" : "paid",
+        date: new Date().toISOString(),
+      };
 
-    const orders = JSON.parse(localStorage.getItem("kkj-orders") || "[]");
-    orders.push(order);
-    localStorage.setItem("kkj-orders", JSON.stringify(orders));
+      const orders = JSON.parse(localStorage.getItem("kkj-orders") || "[]");
+      orders.push(order);
+      localStorage.setItem("kkj-orders", JSON.stringify(orders));
 
-    clearCart();
-    setIsProcessing(false);
+      clearCart();
+      setIsProcessing(false);
 
-    toast.success("Order placed successfully!", {
-      description: "Thank you for your purchase!",
-      icon: <CheckCircle className="h-5 w-5 text-primary" />,
-    });
+      toast.success("Order placed successfully!", {
+        description: `Order ${order.orderNumber} confirmed. Check your email for details.`,
+        icon: <CheckCircle className="h-5 w-5 text-primary" />,
+      });
 
-    setTimeout(() => {
-      navigate("/");
-    }, 1500);
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    } catch (error) {
+      setIsProcessing(false);
+      
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(newErrors);
+        
+        toast.error("Please fix the errors in the form", {
+          description: error.errors[0].message,
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      }
+    }
   };
 
   if (cart.length === 0) {
@@ -267,9 +353,16 @@ const Checkout = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    required
+                    onBlur={() => validateField("name", formData.name)}
+                    className={errors.name ? "border-destructive" : ""}
                     placeholder="Enter your full name"
                   />
+                  {errors.name && (
+                    <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -281,9 +374,16 @@ const Checkout = () => {
                       type="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      required
+                      onBlur={() => validateField("email", formData.email)}
+                      className={errors.email ? "border-destructive" : ""}
                       placeholder="your@email.com"
                     />
+                    {errors.email && (
+                      <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone *</Label>
@@ -293,23 +393,41 @@ const Checkout = () => {
                       type="tel"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      required
-                      placeholder="+91 98765 43210"
+                      onBlur={() => validateField("phone", formData.phone)}
+                      className={errors.phone ? "border-destructive" : ""}
+                      placeholder="+919876543210"
                     />
+                    {errors.phone && (
+                      <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="address">Address *</Label>
+                  <Label htmlFor="address" className="flex justify-between">
+                    <span>Address *</span>
+                    <span className="text-xs text-muted-foreground">{formData.address.length}/500</span>
+                  </Label>
                   <Textarea
                     id="address"
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
-                    required
+                    onBlur={() => validateField("address", formData.address)}
+                    className={errors.address ? "border-destructive" : ""}
                     placeholder="Street address, apartment, suite, etc."
+                    maxLength={500}
                     rows={3}
                   />
+                  {errors.address && (
+                    <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.address}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -320,9 +438,16 @@ const Checkout = () => {
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
-                      required
-                      placeholder="City"
+                      onBlur={() => validateField("city", formData.city)}
+                      className={errors.city ? "border-destructive" : ""}
+                      placeholder="Mumbai"
                     />
+                    {errors.city && (
+                      <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.city}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="pincode">Pincode *</Label>
@@ -331,9 +456,17 @@ const Checkout = () => {
                       name="pincode"
                       value={formData.pincode}
                       onChange={handleInputChange}
-                      required
+                      onBlur={() => validateField("pincode", formData.pincode)}
+                      className={errors.pincode ? "border-destructive" : ""}
                       placeholder="400001"
+                      maxLength={6}
                     />
+                    {errors.pincode && (
+                      <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.pincode}
+                      </p>
+                    )}
                   </div>
                 </div>
 
