@@ -1,10 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, Search, Menu, X, User, LogOut } from "lucide-react";
+import { ShoppingCart, Search, Menu, X, User, LogOut, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ import { toast } from "sonner";
 
 const Navbar = () => {
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,8 +78,8 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Search & Cart */}
-        <div className="flex items-center space-x-4">
+        {/* Search & Actions */}
+        <div className="flex items-center space-x-2">
           {/* Search Form - Hidden on mobile */}
           <form onSubmit={handleSearch} className="hidden lg:flex items-center">
             <div className="relative">
@@ -90,6 +93,21 @@ const Navbar = () => {
               />
             </div>
           </form>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          {/* Wishlist Button */}
+          <Link to="/wishlist">
+            <Button variant="ghost" size="icon" className="relative hover-scale">
+              <Heart className="h-5 w-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground animate-bounce-subtle">
+                  {wishlistCount}
+                </span>
+              )}
+            </Button>
+          </Link>
 
           {/* User Account */}
           {user ? (
@@ -113,6 +131,12 @@ const Navbar = () => {
                     My Orders
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/wishlist" className="cursor-pointer">
+                    <Heart className="mr-2 h-4 w-4" />
+                    My Wishlist
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -133,10 +157,10 @@ const Navbar = () => {
 
           {/* Cart Button */}
           <Link to="/cart">
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative hover-scale">
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground animate-bounce-subtle">
                   {cartCount}
                 </span>
               )}

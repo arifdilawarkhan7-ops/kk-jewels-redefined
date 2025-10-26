@@ -11,6 +11,7 @@ export interface Product {
   image: string;
   description: string;
   featured?: boolean;
+  material?: string;
 }
 
 export const products: Product[] = [
@@ -23,6 +24,7 @@ export const products: Product[] = [
     image: necklace1,
     description: "An exquisite teardrop diamond pendant set in 18K gold, perfect for elegant evenings. Features a brilliant-cut center stone surrounded by micro-pavé diamonds. Total weight: 3.2 carats. Includes certification and luxury gift box.",
     featured: true,
+    material: "Gold, Diamond",
   },
   {
     id: "2",
@@ -32,6 +34,7 @@ export const products: Product[] = [
     image: ring1,
     description: "A stunning engagement ring featuring a brilliant round-cut diamond in a halo setting. Crafted in 18K rose gold with exceptional sparkle and clarity. Center stone: 1.5 carats (VS1, F color). Side diamonds: 0.8 carats total. Includes GIA certification.",
     featured: true,
+    material: "Rose Gold, Diamond",
   },
   {
     id: "3",
@@ -41,6 +44,7 @@ export const products: Product[] = [
     image: earrings1,
     description: "Luxurious gold drop earrings adorned with pear-shaped crystals and delicate diamond accents. Perfect for special occasions and elegant gatherings. 18K yellow gold, 4.2cm drop length. Diamond weight: 0.4 carats.",
     featured: true,
+    material: "Gold, Diamond",
   },
   {
     id: "4",
@@ -50,6 +54,7 @@ export const products: Product[] = [
     image: bracelet1,
     description: "A sophisticated tennis bracelet featuring alternating diamonds and colored gemstones in 18K gold. Adjustable clasp ensures perfect fit. Total carat weight: 12 carats. Features sapphires, emeralds, and rubies.",
     featured: true,
+    material: "Gold, Diamond",
   },
 
   // Necklaces
@@ -60,6 +65,7 @@ export const products: Product[] = [
     category: "necklaces",
     image: necklace1,
     description: "Symbol of eternal love, this infinity pendant is adorned with brilliant diamonds and set in lustrous 18K white gold. Diamond weight: 1.2 carats. Chain length: 18 inches with 2-inch extender.",
+    material: "Gold, Diamond",
   },
   {
     id: "6",
@@ -68,6 +74,7 @@ export const products: Product[] = [
     category: "necklaces",
     image: necklace1,
     description: "Rare Colombian emerald solitaire pendant (3.5 carats) set in platinum. AAA quality with vivid green color. Certified natural emerald with no treatments. 16-inch platinum chain included.",
+    material: "Platinum, Diamond",
   },
   {
     id: "7",
@@ -76,6 +83,7 @@ export const products: Product[] = [
     category: "necklaces",
     image: necklace1,
     description: "Elegant 24-inch station necklace featuring 7 perfectly matched South Sea pearls (8-9mm) spaced along an 18K yellow gold chain. Lustrous AAA grade pearls with excellent nacre.",
+    material: "Gold",
   },
   {
     id: "8",
@@ -84,6 +92,7 @@ export const products: Product[] = [
     category: "necklaces",
     image: necklace1,
     description: "Heart-shaped ruby pendant (2.0 carats) surrounded by diamond halo in 18K rose gold. Burma ruby with pigeon blood red color. Diamond accents: 0.5 carats. 18-inch chain.",
+    material: "Rose Gold, Diamond",
   },
   {
     id: "9",
@@ -92,6 +101,7 @@ export const products: Product[] = [
     category: "necklaces",
     image: necklace1,
     description: "Trendy set of three layered chains in 18K yellow gold with varying lengths (16\", 18\", 20\"). Features delicate links with diamond-cut accents. Total gold weight: 12 grams.",
+    material: "Gold",
   },
 
   // Rings
@@ -102,6 +112,7 @@ export const products: Product[] = [
     category: "rings",
     image: ring1,
     description: "Classic wedding band featuring channel-set sapphires and diamonds. Timeless design in 18K yellow gold. 7 blue sapphires (0.8 carats total) alternating with 6 diamonds (0.5 carats).",
+    material: "Gold, Diamond",
   },
   {
     id: "11",
@@ -110,6 +121,7 @@ export const products: Product[] = [
     category: "rings",
     image: ring1,
     description: "Three-stone diamond ring symbolizing past, present, and future. Center stone: 1.0 carat, side stones: 0.5 carats each. 18K white gold setting. Total diamond weight: 2.0 carats (VS2, G color).",
+    material: "Gold, Diamond",
   },
   {
     id: "12",
@@ -118,6 +130,7 @@ export const products: Product[] = [
     category: "rings",
     image: ring1,
     description: "Ornate vintage-inspired ring with intricate filigree work in 18K rose gold. Features 0.8-carat cushion-cut diamond with milgrain detailing. Art Deco style with modern craftsmanship.",
+    material: "Rose Gold, Diamond",
   },
   {
     id: "13",
@@ -126,6 +139,7 @@ export const products: Product[] = [
     category: "rings",
     image: ring1,
     description: "Luxurious eternity band featuring 15 emerald-cut diamonds (total 3.5 carats) set in platinum. VS1 clarity, F-G color. Timeless elegance that sparkles from every angle.",
+    material: "Platinum, Diamond",
   },
   {
     id: "14",
@@ -134,6 +148,7 @@ export const products: Product[] = [
     category: "rings",
     image: ring1,
     description: "Set of three stackable rings in mixed metals (rose, yellow, and white 18K gold). Each ring features micro-pavé diamonds. Total diamond weight: 0.9 carats. Wear together or separately.",
+    material: "Gold, Diamond",
   },
   {
     id: "15",
@@ -142,6 +157,7 @@ export const products: Product[] = [
     category: "rings",
     image: ring1,
     description: "Bold statement ring featuring a 2.5-carat black diamond center stone surrounded by white diamonds in 18K white gold. Modern and edgy design. Total carat weight: 4.0 carats.",
+    material: "Gold, Diamond",
   },
 
   // Earrings
@@ -152,6 +168,7 @@ export const products: Product[] = [
     category: "earrings",
     image: earrings1,
     description: "Elegant freshwater pearl studs (7-8mm) with 18K yellow gold settings. Perfect for everyday sophistication. AAA grade lustrous pearls with excellent surface quality.",
+    material: "Gold",
   },
   {
     id: "17",
@@ -160,6 +177,7 @@ export const products: Product[] = [
     category: "earrings",
     image: earrings1,
     description: "Classic inside-out diamond hoop earrings in 18K white gold. 80 round brilliant diamonds (total 2.0 carats) adorn both inside and outside. 25mm diameter with secure lever-back closure.",
+    material: "Gold, Diamond",
   },
   {
     id: "18",
@@ -168,6 +186,7 @@ export const products: Product[] = [
     category: "earrings",
     image: earrings1,
     description: "Dramatic chandelier earrings featuring cascading crystals and diamond accents in 18K rose gold. 6cm drop length. Perfect for weddings and formal events. Diamond weight: 0.6 carats.",
+    material: "Rose Gold, Diamond",
   },
   {
     id: "19",
@@ -176,6 +195,7 @@ export const products: Product[] = [
     category: "earrings",
     image: earrings1,
     description: "Vibrant round ruby studs (1.0 carat each) in platinum four-prong settings. Pigeon blood red Burmese rubies with excellent clarity. Secured with butterfly backs.",
+    material: "Platinum",
   },
   {
     id: "20",
@@ -184,6 +204,7 @@ export const products: Product[] = [
     category: "earrings",
     image: earrings1,
     description: "Modern geometric drop earrings in 18K yellow gold with angular design. Features 1.2 carats of baguette and round diamonds. Contemporary style, 4cm length.",
+    material: "Gold, Diamond",
   },
   {
     id: "21",
@@ -192,6 +213,7 @@ export const products: Product[] = [
     category: "earrings",
     image: earrings1,
     description: "Stunning oval blue sapphire earrings (1.5 carats each) with diamond halos in 18K white gold. Ceylon sapphires with vivid blue color. Total diamond weight: 0.8 carats.",
+    material: "Gold, Diamond",
   },
 
   // Bracelets
@@ -202,6 +224,7 @@ export const products: Product[] = [
     category: "bracelets",
     image: bracelet1,
     description: "Delicate link bracelet with customizable charms in 18K rose gold. Features secure clasp and 7.5-inch length with extender. Comes with three starter charms: heart, key, and infinity symbol.",
+    material: "Rose Gold",
   },
   {
     id: "23",
@@ -210,6 +233,7 @@ export const products: Product[] = [
     category: "bracelets",
     image: bracelet1,
     description: "Luxurious set of three diamond bangles in 18K gold (yellow, rose, and white). Each bangle features channel-set diamonds. Total diamond weight: 4.5 carats. Inside diameter: 65mm.",
+    material: "Gold, Diamond",
   },
   {
     id: "24",
@@ -218,6 +242,7 @@ export const products: Product[] = [
     category: "bracelets",
     image: bracelet1,
     description: "Elegant link bracelet featuring 12 oval emeralds (total 8 carats) connected with diamond links in platinum. Colombian emeralds with vivid green color. Length: 7 inches.",
+    material: "Platinum, Diamond",
   },
   {
     id: "25",
@@ -226,6 +251,7 @@ export const products: Product[] = [
     category: "bracelets",
     image: bracelet1,
     description: "Double-strand bracelet featuring Akoya pearls (6-6.5mm) with 18K white gold clasp adorned with diamonds. 7-inch length. Perfect for bridal jewelry.",
+    material: "Gold",
   },
   {
     id: "26",
@@ -234,6 +260,7 @@ export const products: Product[] = [
     category: "bracelets",
     image: bracelet1,
     description: "Flexible diamond bracelet with 120 round brilliant diamonds (total 6.0 carats) in 18K white gold. Moves like fabric on the wrist. VS clarity, F-G color. 7-inch length.",
+    material: "Gold, Diamond",
   },
   {
     id: "27",
@@ -242,5 +269,6 @@ export const products: Product[] = [
     category: "bracelets",
     image: bracelet1,
     description: "Bold statement cuff in 18K yellow gold featuring three rows of rubies and diamonds. Total gem weight: 8 carats (5 carats rubies, 3 carats diamonds). 15mm width, adjustable.",
+    material: "Gold, Diamond",
   },
 ];

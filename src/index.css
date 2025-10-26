@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Luxury fonts loaded via index.html */
 
 @tailwind base;
 @tailwind components;
@@ -77,34 +77,39 @@
   }
 
   .dark {
-    --background: 345 55% 6%;
+    --background: 0 0% 6%;
     --foreground: 40 50% 96%;
 
-    --card: 345 50% 10%;
+    --card: 0 0% 10%;
     --card-foreground: 40 50% 96%;
 
-    --popover: 345 50% 10%;
+    --popover: 0 0% 10%;
     --popover-foreground: 40 50% 96%;
 
     --primary: 43 95% 55%;
-    --primary-foreground: 345 60% 8%;
+    --primary-foreground: 0 0% 6%;
     --primary-glow: 43 100% 65%;
 
     --secondary: 345 85% 30%;
     --secondary-foreground: 40 50% 98%;
 
-    --muted: 345 35% 18%;
+    --muted: 0 0% 15%;
     --muted-foreground: 40 30% 65%;
 
     --accent: 38 92% 58%;
-    --accent-foreground: 345 60% 8%;
+    --accent-foreground: 0 0% 6%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 40 50% 98%;
 
-    --border: 345 35% 20%;
-    --input: 345 35% 20%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --ring: 43 95% 55%;
+
+    /* Dark mode gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(43, 95%, 55%) 0%, hsl(38, 92%, 50%) 50%, hsl(33, 88%, 48%) 100%);
+    --gradient-maroon: linear-gradient(135deg, hsl(345, 85%, 25%) 0%, hsl(345, 80%, 20%) 50%, hsl(345, 75%, 15%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0, 0%, 10%) 0%, hsl(0, 0%, 15%) 30%, hsl(43, 95%, 55%) 70%, hsl(38, 92%, 58%) 100%);
   }
 }
 
@@ -115,11 +120,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Montserrat', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cinzel', serif;
     font-weight: 600;
   }
 }
@@ -146,6 +151,18 @@
     animation: shimmer 3s infinite;
   }
 
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-105;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300 hover:shadow-gold;
+  }
+
+  .product-card-hover {
+    @apply transition-all duration-300 hover:shadow-gold hover:-translate-y-1;
+  }
+
   @keyframes shimmer {
     0%, 100% {
       background-position: 0% 50%;
@@ -153,5 +170,18 @@
     50% {
       background-position: 100% 50%;
     }
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 0.5s ease-out;
   }
 }
