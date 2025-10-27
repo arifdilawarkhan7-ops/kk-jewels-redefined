@@ -18,8 +18,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart(product);
-    toast.success(`${product.name} added to cart!`);
+    
+    if (product.productType === 'affiliate' && product.affiliateUrl) {
+      window.open(product.affiliateUrl, '_blank');
+      toast.success("Opening product page...");
+    } else {
+      addToCart(product);
+      toast.success(`${product.name} added to cart!`);
+    }
   };
 
   const handleWishlistToggle = (e: React.MouseEvent) => {

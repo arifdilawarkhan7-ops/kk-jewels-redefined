@@ -1,10 +1,11 @@
 import Hero from "@/components/Hero";
 import FeaturedCollections from "@/components/FeaturedCollections";
+import AdPlaceholder from "@/components/AdPlaceholder";
 import ProductCard from "@/components/ProductCard";
 import { products } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Star } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 
 const Home = () => {
   const featuredProducts = products.filter((p) => p.featured);
