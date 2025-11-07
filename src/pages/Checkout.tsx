@@ -35,6 +35,119 @@ const checkoutSchema = z.object({
     .trim()
     .regex(/^[0-9]{6}$/, "Pincode must be exactly 6 digits"),
   paymentMethod: z.enum(["card", "netbanking", "upi", "wallet", "emi", "cod", "paypal", "giftcard"]),
+  // Payment-specific fields (conditionally validated)
+  cardNumber: z.string().optional(),
+  cardName: z.string().optional(),
+  cardExpiry: z.string().optional(),
+  cardCvv: z.string().optional(),
+  bankName: z.string().optional(),
+  upiId: z.string().optional(),
+  walletProvider: z.string().optional(),
+  emiBank: z.string().optional(),
+  emiTenure: z.string().optional(),
+  paypalEmail: z.string().optional(),
+  giftCardCode: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Validate card details if payment method is card
+  if (data.paymentMethod === "card") {
+    if (!data.cardNumber || !/^[0-9]{16}$/.test(data.cardNumber.replace(/\s/g, ""))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Card number must be 16 digits",
+        path: ["cardNumber"],
+      });
+    }
+    if (!data.cardName || data.cardName.trim().length < 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Cardholder name is required",
+        path: ["cardName"],
+      });
+    }
+    if (!data.cardExpiry || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(data.cardExpiry)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Expiry must be in MM/YY format",
+        path: ["cardExpiry"],
+      });
+    }
+    if (!data.cardCvv || !/^[0-9]{3,4}$/.test(data.cardCvv)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "CVV must be 3 or 4 digits",
+        path: ["cardCvv"],
+      });
+    }
+  }
+  
+  // Validate net banking
+  if (data.paymentMethod === "netbanking" && !data.bankName) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please select a bank",
+      path: ["bankName"],
+    });
+  }
+  
+  // Validate UPI
+  if (data.paymentMethod === "upi") {
+    if (!data.upiId || !/^[\w.-]+@[\w.-]+$/.test(data.upiId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter valid UPI ID (e.g., name@upi)",
+        path: ["upiId"],
+      });
+    }
+  }
+  
+  // Validate wallet
+  if (data.paymentMethod === "wallet" && !data.walletProvider) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please select a wallet provider",
+      path: ["walletProvider"],
+    });
+  }
+  
+  // Validate EMI
+  if (data.paymentMethod === "emi") {
+    if (!data.emiBank) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please select a bank for EMI",
+        path: ["emiBank"],
+      });
+    }
+    if (!data.emiTenure) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please select EMI tenure",
+        path: ["emiTenure"],
+      });
+    }
+  }
+  
+  // Validate PayPal
+  if (data.paymentMethod === "paypal") {
+    if (!data.paypalEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.paypalEmail)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter valid PayPal email",
+        path: ["paypalEmail"],
+      });
+    }
+  }
+  
+  // Validate gift card
+  if (data.paymentMethod === "giftcard") {
+    if (!data.giftCardCode || data.giftCardCode.trim().length < 8) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter valid gift card code",
+        path: ["giftCardCode"],
+      });
+    }
+  }
 });
 
 const Checkout = () => {
@@ -51,6 +164,17 @@ const Checkout = () => {
     city: string;
     pincode: string;
     paymentMethod: "card" | "netbanking" | "upi" | "wallet" | "emi" | "cod" | "paypal" | "giftcard";
+    cardNumber?: string;
+    cardName?: string;
+    cardExpiry?: string;
+    cardCvv?: string;
+    bankName?: string;
+    upiId?: string;
+    walletProvider?: string;
+    emiBank?: string;
+    emiTenure?: string;
+    paypalEmail?: string;
+    giftCardCode?: string;
   }>({
     name: "",
     email: "",
@@ -69,7 +193,7 @@ const Checkout = () => {
     }).format(price);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -82,17 +206,28 @@ const Checkout = () => {
     }
   };
 
+  const formatCardNumber = (value: string) => {
+    const cleaned = value.replace(/\s/g, "");
+    const chunks = cleaned.match(/.{1,4}/g);
+    return chunks ? chunks.join(" ") : cleaned;
+  };
+
   const validateField = (field: string, value: any) => {
     try {
-      checkoutSchema.shape[field as keyof typeof checkoutSchema.shape].parse(value);
+      // Validate the entire form data to trigger superRefine checks
+      checkoutSchema.parse(formData);
       setErrors(prev => ({ ...prev, [field]: "" }));
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        setErrors(prev => ({ ...prev, [field]: error.errors[0].message }));
-        return false;
+        // Only show error for the current field
+        const fieldError = error.errors.find(err => err.path[0] === field);
+        if (fieldError) {
+          setErrors(prev => ({ ...prev, [field]: fieldError.message }));
+          return false;
+        }
       }
-      return false;
+      return true;
     }
   };
 
@@ -346,6 +481,305 @@ const Checkout = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Payment-specific Details */}
+                {formData.paymentMethod === "card" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border space-y-4 animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-4">Card Details</h3>
+                    <div>
+                      <Label htmlFor="cardNumber">Card Number *</Label>
+                      <Input
+                        id="cardNumber"
+                        name="cardNumber"
+                        value={formData.cardNumber || ""}
+                        onChange={(e) => {
+                          const formatted = formatCardNumber(e.target.value.replace(/\D/g, "").slice(0, 16));
+                          setFormData(prev => ({ ...prev, cardNumber: formatted }));
+                          if (errors.cardNumber) setErrors(prev => ({ ...prev, cardNumber: "" }));
+                        }}
+                        className={errors.cardNumber ? "border-destructive" : ""}
+                        placeholder="1234 5678 9012 3456"
+                        maxLength={19}
+                      />
+                      {errors.cardNumber && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.cardNumber}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="cardName">Cardholder Name *</Label>
+                      <Input
+                        id="cardName"
+                        name="cardName"
+                        value={formData.cardName || ""}
+                        onChange={handleInputChange}
+                        className={errors.cardName ? "border-destructive" : ""}
+                        placeholder="Name on card"
+                      />
+                      {errors.cardName && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.cardName}
+                        </p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="cardExpiry">Expiry Date *</Label>
+                        <Input
+                          id="cardExpiry"
+                          name="cardExpiry"
+                          value={formData.cardExpiry || ""}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, "");
+                            if (value.length >= 2) {
+                              value = value.slice(0, 2) + "/" + value.slice(2, 4);
+                            }
+                            setFormData(prev => ({ ...prev, cardExpiry: value }));
+                            if (errors.cardExpiry) setErrors(prev => ({ ...prev, cardExpiry: "" }));
+                          }}
+                          className={errors.cardExpiry ? "border-destructive" : ""}
+                          placeholder="MM/YY"
+                          maxLength={5}
+                        />
+                        {errors.cardExpiry && (
+                          <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {errors.cardExpiry}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor="cardCvv">CVV *</Label>
+                        <Input
+                          id="cardCvv"
+                          name="cardCvv"
+                          type="password"
+                          value={formData.cardCvv || ""}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+                            setFormData(prev => ({ ...prev, cardCvv: value }));
+                            if (errors.cardCvv) setErrors(prev => ({ ...prev, cardCvv: "" }));
+                          }}
+                          className={errors.cardCvv ? "border-destructive" : ""}
+                          placeholder="123"
+                          maxLength={4}
+                        />
+                        {errors.cardCvv && (
+                          <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {errors.cardCvv}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {formData.paymentMethod === "netbanking" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border space-y-4 animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-4">Select Your Bank</h3>
+                    <div>
+                      <Label htmlFor="bankName">Bank Name *</Label>
+                      <select
+                        id="bankName"
+                        name="bankName"
+                        value={formData.bankName || ""}
+                        onChange={handleInputChange}
+                        className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors.bankName ? "border-destructive" : ""}`}
+                      >
+                        <option value="">Select a bank</option>
+                        <option value="hdfc">HDFC Bank</option>
+                        <option value="icici">ICICI Bank</option>
+                        <option value="sbi">State Bank of India</option>
+                        <option value="axis">Axis Bank</option>
+                        <option value="kotak">Kotak Mahindra Bank</option>
+                        <option value="pnb">Punjab National Bank</option>
+                        <option value="other">Other Banks</option>
+                      </select>
+                      {errors.bankName && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.bankName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {formData.paymentMethod === "upi" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border space-y-4 animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-4">Enter UPI Details</h3>
+                    <div>
+                      <Label htmlFor="upiId">UPI ID *</Label>
+                      <Input
+                        id="upiId"
+                        name="upiId"
+                        value={formData.upiId || ""}
+                        onChange={handleInputChange}
+                        className={errors.upiId ? "border-destructive" : ""}
+                        placeholder="yourname@paytm / yourname@okicici"
+                      />
+                      {errors.upiId && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.upiId}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        You will be redirected to your UPI app to complete the payment
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {formData.paymentMethod === "wallet" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border space-y-4 animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-4">Select Wallet</h3>
+                    <div>
+                      <Label htmlFor="walletProvider">Wallet Provider *</Label>
+                      <select
+                        id="walletProvider"
+                        name="walletProvider"
+                        value={formData.walletProvider || ""}
+                        onChange={handleInputChange}
+                        className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors.walletProvider ? "border-destructive" : ""}`}
+                      >
+                        <option value="">Select a wallet</option>
+                        <option value="amazonpay">Amazon Pay</option>
+                        <option value="paytm">Paytm Wallet</option>
+                        <option value="phonepe">PhonePe Wallet</option>
+                        <option value="mobikwik">MobiKwik</option>
+                        <option value="freecharge">Freecharge</option>
+                      </select>
+                      {errors.walletProvider && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.walletProvider}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {formData.paymentMethod === "emi" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border space-y-4 animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-4">EMI Options</h3>
+                    <div>
+                      <Label htmlFor="emiBank">Select Bank *</Label>
+                      <select
+                        id="emiBank"
+                        name="emiBank"
+                        value={formData.emiBank || ""}
+                        onChange={handleInputChange}
+                        className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors.emiBank ? "border-destructive" : ""}`}
+                      >
+                        <option value="">Select bank for EMI</option>
+                        <option value="hdfc">HDFC Bank</option>
+                        <option value="icici">ICICI Bank</option>
+                        <option value="sbi">SBI Cards</option>
+                        <option value="axis">Axis Bank</option>
+                        <option value="kotak">Kotak Mahindra Bank</option>
+                      </select>
+                      {errors.emiBank && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.emiBank}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="emiTenure">EMI Tenure *</Label>
+                      <select
+                        id="emiTenure"
+                        name="emiTenure"
+                        value={formData.emiTenure || ""}
+                        onChange={handleInputChange}
+                        className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors.emiTenure ? "border-destructive" : ""}`}
+                      >
+                        <option value="">Select tenure</option>
+                        <option value="3">3 Months (No Cost EMI)</option>
+                        <option value="6">6 Months</option>
+                        <option value="9">9 Months</option>
+                        <option value="12">12 Months</option>
+                        <option value="18">18 Months</option>
+                        <option value="24">24 Months</option>
+                      </select>
+                      {errors.emiTenure && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.emiTenure}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {formData.paymentMethod === "paypal" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border space-y-4 animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-4">PayPal Details</h3>
+                    <div>
+                      <Label htmlFor="paypalEmail">PayPal Email *</Label>
+                      <Input
+                        id="paypalEmail"
+                        name="paypalEmail"
+                        type="email"
+                        value={formData.paypalEmail || ""}
+                        onChange={handleInputChange}
+                        className={errors.paypalEmail ? "border-destructive" : ""}
+                        placeholder="your@paypal.com"
+                      />
+                      {errors.paypalEmail && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.paypalEmail}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        You'll be redirected to PayPal to complete your payment
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {formData.paymentMethod === "giftcard" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border space-y-4 animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-4">Gift Card / Promo Code</h3>
+                    <div>
+                      <Label htmlFor="giftCardCode">Card Code *</Label>
+                      <Input
+                        id="giftCardCode"
+                        name="giftCardCode"
+                        value={formData.giftCardCode || ""}
+                        onChange={(e) => {
+                          const value = e.target.value.toUpperCase();
+                          setFormData(prev => ({ ...prev, giftCardCode: value }));
+                          if (errors.giftCardCode) setErrors(prev => ({ ...prev, giftCardCode: "" }));
+                        }}
+                        className={errors.giftCardCode ? "border-destructive" : ""}
+                        placeholder="XXXX-XXXX-XXXX-XXXX"
+                      />
+                      {errors.giftCardCode && (
+                        <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.giftCardCode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {formData.paymentMethod === "cod" && (
+                  <div className="bg-muted/30 p-6 rounded-lg border border-border animate-fade-in">
+                    <h3 className="font-semibold text-lg mb-2">Cash on Delivery</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Pay with cash, UPI, or card when you receive your order. Additional ₹40 handling fee may apply.
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
