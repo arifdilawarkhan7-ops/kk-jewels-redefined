@@ -5,6 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
+  email: z.string().trim().email("Invalid email address").max(255),
+  phone: z.string().trim().regex(/^\+?[1-9]\d{9,14}$/, "Invalid phone number (e.g., +919876543210)").optional().or(z.literal("")),
+  message: z.string().trim().min(10, "Message must be at least 10 characters").max(2000, "Message must be less than 2000 characters"),
+});
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +21,7 @@ const Contact = () => {
     phone: "",
     message: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({
@@ -23,15 +32,29 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
-    // Simulate sending message
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    toast.success("Message sent successfully!", {
-      description: "We'll get back to you within 24 hours.",
-    });
+    try {
+      const validated = contactSchema.parse(formData);
+      
+      // Simulate sending message
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      toast.success("Message sent successfully!", {
+        description: "We'll get back to you within 24 hours.",
+      });
 
-    setFormData({ name: "", email: "", phone: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error(error.errors[0].message);
+      }
+    }
   };
 
   return (
@@ -118,7 +141,10 @@ const Contact = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="Enter your name"
+                    maxLength={100}
+                    className={errors.name ? "border-destructive" : ""}
                   />
+                  {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -148,7 +174,7 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="message">Message *</Label>
+                  <Label htmlFor="message">Message * ({formData.message.length}/2000)</Label>
                   <Textarea
                     id="message"
                     name="message"
@@ -157,7 +183,10 @@ const Contact = () => {
                     required
                     placeholder="Tell us how we can help you..."
                     rows={6}
+                    maxLength={2000}
+                    className={errors.message ? "border-destructive" : ""}
                   />
+                  {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
                 </div>
 
                 <Button type="submit" size="lg" className="w-full shadow-gold">

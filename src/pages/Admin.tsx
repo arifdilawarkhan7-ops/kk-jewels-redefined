@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,21 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Package, DollarSign, Users, Settings, BarChart3 } from "lucide-react";
+import { Package, DollarSign, Users, Settings, BarChart3, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-
-  // TODO: Replace with secure backend authentication
-  const handleLogin = () => {
-    if (password === "admin123") {
-      setIsAuthenticated(true);
-      toast.success("Welcome to Admin Dashboard");
-    } else {
-      toast.error("Invalid password");
-    }
-  };
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [productForm, setProductForm] = useState({
     name: "",
@@ -32,6 +25,42 @@ const Admin = () => {
     description: ""
   });
 
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      setIsLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          setIsAdmin(false);
+          setIsLoading(false);
+          return;
+        }
+
+        const { data: userRoles, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "admin")
+          .single();
+
+        if (error || !userRoles) {
+          setIsAdmin(false);
+          toast.error("Access denied: Admin privileges required");
+        } else {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.error("Error checking admin access:", error);
+        setIsAdmin(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAdminAccess();
+  }, []);
+
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: Connect to external backend
@@ -39,29 +68,40 @@ const Admin = () => {
     toast.success("Product saved (connect to backend)");
   };
 
-  if (!isAuthenticated) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Checking admin access...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
-            <CardDescription className="text-center">Enter password to access dashboard</CardDescription>
+            <CardTitle className="text-2xl text-center">Access Denied</CardTitle>
+            <CardDescription className="text-center">Admin privileges required</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Admin Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              />
-              <Button onClick={handleLogin} className="w-full">
-                Login
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                Note: Connect to secure backend authentication
+              <p className="text-sm text-muted-foreground text-center">
+                You need to be logged in as an admin to access this page.
               </p>
+              <Button onClick={() => navigate("/auth")} className="w-full">
+                Sign In
+              </Button>
+              <Button onClick={() => navigate("/")} variant="outline" className="w-full">
+                Go Home
+              </Button>
             </div>
           </CardContent>
         </Card>

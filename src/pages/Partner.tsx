@@ -5,6 +5,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Diamond, Sparkles, TrendingUp, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const partnerSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
+  email: z.string().trim().email("Invalid email address").max(255),
+  business: z.string().trim().min(2, "Business name required").max(200, "Business name too long"),
+  location: z.string().trim().min(2, "Location required").max(100, "Location too long"),
+  message: z.string().trim().max(2000, "Message too long").optional().or(z.literal("")),
+});
 
 const Partner = () => {
   const [formData, setFormData] = useState({
@@ -14,15 +24,45 @@ const Partner = () => {
     location: "",
     message: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
-    // TODO: Connect to your external backend API
-    console.log("Partner form submitted:", formData);
-    
-    toast.success("Thank you! We'll contact you soon.");
-    setFormData({ name: "", email: "", business: "", location: "", message: "" });
+    try {
+      const validated = partnerSchema.parse(formData);
+      setIsLoading(true);
+
+      const { error } = await supabase.from("partner_leads").insert({
+        name: validated.name,
+        email: validated.email,
+        business_name: validated.business,
+        location: validated.location,
+        message: validated.message || null,
+      });
+
+      if (error) throw error;
+
+      toast.success("Application submitted!", {
+        description: "We'll review your application and get back to you soon.",
+      });
+      setFormData({ name: "", email: "", business: "", location: "", message: "" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error("Failed to submit application. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -79,8 +119,10 @@ const Partner = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="mt-2"
+                  maxLength={100}
+                  className={`mt-2 ${errors.name ? "border-destructive" : ""}`}
                 />
+                {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
               </div>
               
               <div>
@@ -121,20 +163,22 @@ const Partner = () => {
               </div>
               
               <div>
-                <Label htmlFor="message">Tell us about your jewelry collection</Label>
+                <Label htmlFor="message">Tell us about your jewelry collection ({formData.message.length}/2000)</Label>
                 <Textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
                   rows={5}
-                  className="mt-2"
+                  maxLength={2000}
+                  className={`mt-2 ${errors.message ? "border-destructive" : ""}`}
                   placeholder="Share details about your products, experience, and what makes your jewelry unique..."
                 />
+                {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
               </div>
 
-              <Button type="submit" size="lg" className="w-full shadow-gold">
-                Submit Partnership Application
+              <Button type="submit" size="lg" className="w-full shadow-gold" disabled={isLoading}>
+                {isLoading ? "Submitting..." : "Submit Partnership Application"}
               </Button>
             </form>
           </div>

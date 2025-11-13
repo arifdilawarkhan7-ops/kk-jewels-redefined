@@ -1,5 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, Search, Menu, X, User, LogOut, Heart } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ShoppingCart, Search, Menu, X, User as UserIcon, LogOut, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
@@ -16,26 +16,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const Navbar = () => {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("kkj-user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleSignOut = () => {
-    localStorage.removeItem("kkj-user");
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     toast.success("Signed out successfully");
+    navigate("/");
   };
 
   const navLinks = [
@@ -115,13 +126,13 @@ const Navbar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                  <User className="h-5 w-5" />
+                  <UserIcon className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name || "Account"}</p>
+                    <p className="text-sm font-medium leading-none">{user.user_metadata?.name || "Account"}</p>
                     <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
@@ -151,7 +162,7 @@ const Navbar = () => {
                 Sign In
               </Button>
               <Button variant="ghost" size="icon" className="sm:hidden">
-                <User className="h-5 w-5" />
+                <UserIcon className="h-5 w-5" />
               </Button>
             </Link>
           )}

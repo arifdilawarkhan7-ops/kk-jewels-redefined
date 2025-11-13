@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,11 +6,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ShoppingBag } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+// Validation schemas
+const signInSchema = z.object({
+  email: z.string().trim().email("Invalid email address").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const signUpSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name too long")
+    .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
+  email: z.string().trim().email("Invalid email address").max(255).toLowerCase(),
+  phone: z.string().trim().regex(/^\+?[1-9]\d{9,14}$/, "Invalid phone number (e.g., +919876543210)"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(128)
+    .regex(/[A-Z]/, "Must contain uppercase letter")
+    .regex(/[a-z]/, "Must contain lowercase letter")
+    .regex(/[0-9]/, "Must contain number")
+    .regex(/[^A-Za-z0-9]/, "Must contain special character"),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords must match",
+  path: ["confirmPassword"],
+});
 
 const Auth = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [signInData, setSignInData] = useState({
     email: "",
@@ -25,57 +50,104 @@ const Auth = () => {
     confirmPassword: "",
   });
 
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/");
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setErrors({});
+    
+    try {
+      const validated = signInSchema.parse(signInData);
+      setIsLoading(true);
 
-    // Simulate sign in (in real app, connect to your backend)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: validated.email,
+        password: validated.password,
+      });
 
-    localStorage.setItem("kkj-user", JSON.stringify({
-      email: signInData.email,
-      signedInAt: new Date().toISOString()
-    }));
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
 
-    toast.success("Welcome back!", {
-      description: "You have successfully signed in.",
-    });
+      toast.success("Welcome back!", {
+        description: "You have successfully signed in.",
+      });
 
-    setIsLoading(false);
-    navigate("/");
+      navigate("/");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error(error.errors[0].message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
-    if (signUpData.password !== signUpData.confirmPassword) {
-      toast.error("Passwords don't match");
-      return;
+    try {
+      const validated = signUpSchema.parse(signUpData);
+      setIsLoading(true);
+
+      const { data, error } = await supabase.auth.signUp({
+        email: validated.email,
+        password: validated.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name: validated.name,
+            phone: validated.phone,
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      // Create profile
+      if (data.user) {
+        await supabase.from("profiles").insert({
+          id: data.user.id,
+          email: validated.email,
+        });
+      }
+
+      toast.success("Account created!", {
+        description: "Welcome to KK Jewellers",
+      });
+
+      navigate("/");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error(error.errors[0].message);
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-    if (signUpData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Simulate sign up (in real app, connect to your backend)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    localStorage.setItem("kkj-user", JSON.stringify({
-      name: signUpData.name,
-      email: signUpData.email,
-      phone: signUpData.phone,
-      signedUpAt: new Date().toISOString()
-    }));
-
-    toast.success("Account created!", {
-      description: "Welcome to KK Jewellers",
-    });
-
-    setIsLoading(false);
-    navigate("/");
   };
 
   return (
@@ -117,7 +189,11 @@ const Auth = () => {
                     value={signInData.password}
                     onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                     required
+                    className={errors.password ? "border-destructive" : ""}
                   />
+                  {errors.password && (
+                    <p className="text-xs text-destructive mt-1">{errors.password}</p>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -177,7 +253,7 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
+                <Label htmlFor="signup-password">Password (min 8 chars, uppercase, lowercase, number, symbol)</Label>
                 <div className="relative">
                   <Input
                     id="signup-password"
@@ -186,7 +262,11 @@ const Auth = () => {
                     value={signUpData.password}
                     onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                     required
+                    className={errors.password ? "border-destructive" : ""}
                   />
+                  {errors.password && (
+                    <p className="text-xs text-destructive mt-1">{errors.password}</p>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -206,7 +286,11 @@ const Auth = () => {
                   value={signUpData.confirmPassword}
                   onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
                   required
+                  className={errors.confirmPassword ? "border-destructive" : ""}
                 />
+                {errors.confirmPassword && (
+                  <p className="text-xs text-destructive mt-1">{errors.confirmPassword}</p>
+                )}
               </div>
 
               <Button type="submit" className="w-full shadow-gold" disabled={isLoading}>
